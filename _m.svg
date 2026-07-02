@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" fill="#42738d"/>
+<g transform="translate(256,266) scale(0.72) translate(-256,-266)">
+<circle cx="256" cy="176" r="78" fill="none" stroke="#ffffff" stroke-width="16"/>
+<line x1="256" y1="176" x2="256" y2="128" stroke="#ffffff" stroke-width="16" stroke-linecap="round"/>
+<line x1="256" y1="176" x2="292" y2="196" stroke="#f19f53" stroke-width="16" stroke-linecap="round"/>
+<text x="256" y="400" text-anchor="middle" font-family="Arial, sans-serif" font-size="160" font-weight="700" fill="#ffffff">n<tspan fill="#f19f53">G</tspan></text>
+</g></svg>
