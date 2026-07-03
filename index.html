@@ -301,8 +301,8 @@ function plShape(it){
   if(t==="quadro")return `<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#fff" stroke="${A}" stroke-width="2" rx="3"/><text text-anchor="middle" font-size="9" font-weight="700" fill="${P}">${esc(it.label)}</text>`;
   return "";
 }
-function plRender(){
-  const items=plItems.map(it=>`<g class="draggable" data-id="${it.id}" transform="translate(${it.x},${it.y}) rotate(${it.rot})">${it.id===plSel?`<rect x="${-it.w/2-6}" y="${-it.h/2-6}" width="${it.w+12}" height="${it.h+12}" fill="none" stroke="#2e7d54" stroke-width="1.5" stroke-dasharray="4 3"/>`:""}${plShape(it)}</g>`).join("");
+function plDrawSvg(){
+  const items=plItems.map(it=>{const hw=Math.max(it.w,36)/2,hh=Math.max(it.h,36)/2;return `<g class="draggable" data-id="${it.id}" transform="translate(${it.x},${it.y}) rotate(${it.rot})"><rect x="${-hw}" y="${-hh}" width="${hw*2}" height="${hh*2}" fill="transparent"/>${it.id===plSel?`<rect x="${-it.w/2-6}" y="${-it.h/2-6}" width="${it.w+12}" height="${it.h+12}" fill="none" stroke="#2e7d54" stroke-width="1.5" stroke-dasharray="4 3"/>`:""}${plShape(it)}</g>`;}).join("");
   $("box-planta").innerHTML=`
 <svg id="svg-planta" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${PW} ${PH}" font-family="Roboto, Arial, sans-serif">
   <rect width="${PW}" height="${PH}" fill="#fff"/>
@@ -312,8 +312,9 @@ function plRender(){
   ${items}
   <text x="40" y="${PH-12}" font-size="11" font-weight="700" fill="${P}">nG Solutions</text>
 </svg>`;
-  plDrag(); plEditor();
+  plDrag();
 }
+function plRender(){ plDrawSvg(); plEditor(); }
 let plD=null,plMoved=false;
 function plDrag(){document.querySelectorAll("#svg-planta .draggable").forEach(g=>g.addEventListener("pointerdown",plStart));}
 function plStart(e){e.preventDefault();const id=+e.currentTarget.dataset.id;const it=plItems.find(x=>x.id===id);const p=svgPoint($("svg-planta"),e);plD={id,dx:p.x-it.x,dy:p.y-it.y};plMoved=false;if(plSel!==id){plSel=id;plRender();}window.addEventListener("pointermove",plMove);window.addEventListener("pointerup",plEnd);}
@@ -338,8 +339,8 @@ function plEditor(){
       <button class="b-red" onclick="plDel()">Excluir</button>
     </div>`;
 }
-function plSet(k,v){const it=plItems.find(x=>x.id===plSel);if(it){it[k]=v;plRender();}}
-function plSetNum(k,v){const it=plItems.find(x=>x.id===plSel);if(it){it[k]=Math.max(10,+v||10);plRender();}}
+function plSet(k,v){const it=plItems.find(x=>x.id===plSel);if(it){it[k]=v;plDrawSvg();}}
+function plSetNum(k,v){const it=plItems.find(x=>x.id===plSel);if(!it)return;const n=parseFloat(v);if(v===''||isNaN(n))return;it[k]=n;plDrawSvg();}
 function plSetBrand(v){const it=plItems.find(x=>x.id===plSel);if(it){it.brand=v;it.label=v;plRender();}}
 function plRotate(d){const it=plItems.find(x=>x.id===plSel);if(it){it.rot=(it.rot+d)%360;plRender();}}
 function plDup(){const it=plItems.find(x=>x.id===plSel);if(it){const c=JSON.parse(JSON.stringify(it));c.id=plId++;c.x+=25;c.y+=25;plItems.push(c);plSel=c.id;plRender();}}
