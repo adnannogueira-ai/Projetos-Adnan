@@ -18,8 +18,9 @@
   header .brand{font-weight:700;font-size:18px;}header .brand span{color:var(--acc);}
   .gbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
   .gbar label{font-size:12px;font-weight:600;margin:0 4px 0 0;}
-  .gbar input{padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.14);color:#fff;font-weight:700;font-size:15px;font-family:inherit;color-scheme:dark;}
+  .gbar input{padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.55);background:#fff;color:#111;font-weight:700;font-size:15px;font-family:inherit;}
   .gbar label{color:#fff;}
+  .gbar .fld{display:inline-flex;align-items:center;gap:6px;}
   #g-site{text-transform:uppercase;width:150px;font-weight:700;}
   .tabs{display:flex;gap:6px;padding:10px 18px 0;flex-wrap:wrap;}
   .tab{cursor:pointer;border:1px solid var(--line);border-bottom:none;background:var(--lg);color:var(--prim);padding:9px 16px;border-radius:8px 8px 0 0;font-weight:700;font-size:13px;}
@@ -61,8 +62,8 @@
 <header>
   <div class="brand">n<span>G</span> Solutions</div>
   <div class="gbar">
-    <span><label style="display:inline">Site</label><input id="g-site" value="RSPRL02" oninput="gUp()" placeholder="SITE"></span>
-    <span><label style="display:inline">Data</label><input id="g-date" type="date" oninput="gUp()"></span>
+    <span class="fld"><label>Site</label><input id="g-site" value="RSPRL02" oninput="gUp()" placeholder="SITE"></span>
+    <span class="fld"><label>Data</label><input id="g-date" type="date" oninput="gUp()"></span>
     <button class="b-install" style="width:auto;margin:0" onclick="addToHome()">&#11015; Instalar</button>
   </div>
 </header>
@@ -252,7 +253,7 @@ function rfShape(it){const w=it.w,h=it.h,hw=w/2,hh=h/2,t=it.type,L=!it.hide;
 const SHAPE={planta:plShape,rf:rfShape};
 const TITLE={planta:"PLANTA BAIXA",rf:"CROQUI RF &#8212; SISTEMA IRRADIANTE"};
 
-function plLegend(b){const x=b.W-252,y=68;return `<g transform="translate(${x},${y})"><rect width="242" height="46" fill="#fff" stroke="${G}" stroke-width="1" rx="6"/><text x="8" y="15" font-size="9.5" font-weight="700" fill="${P}">LEGENDA</text><g transform="translate(14,33)"><rect x="0" y="-6" width="28" height="12" fill="none" stroke="${A}" stroke-width="1.4"/><line x1="7" y1="-6" x2="7" y2="6" stroke="${A}"/><line x1="14" y1="-6" x2="14" y2="6" stroke="${A}"/><line x1="21" y1="-6" x2="21" y2="6" stroke="${A}"/></g><text x="48" y="36" font-size="9" fill="${G}">Esteiramento</text><g transform="translate(132,33)"><line x1="0" y1="0" x2="28" y2="0" stroke="${P}" stroke-width="4"/><line x1="0" y1="0" x2="28" y2="0" stroke="#fff" stroke-width="1.4" stroke-dasharray="5 5"/></g><text x="164" y="36" font-size="9" fill="${G}">Tubula&#231;&#227;o AC</text></g>`;}
+function plLegend(b){const x=b.W-440,y=b.H-60;return `<g transform="translate(${x},${y})"><rect width="255" height="28" fill="#fff" stroke="${G}" stroke-width="0.8" rx="5"/><text x="6" y="11" font-size="8" font-weight="700" fill="${P}">LEGENDA</text><g transform="translate(10,20)"><rect x="0" y="-5" width="22" height="10" fill="none" stroke="${A}" stroke-width="1.2"/><line x1="6" y1="-5" x2="6" y2="5" stroke="${A}"/><line x1="12" y1="-5" x2="12" y2="5" stroke="${A}"/><line x1="18" y1="-5" x2="18" y2="5" stroke="${A}"/></g><text x="38" y="22" font-size="8" fill="${G}">Esteiramento</text><g transform="translate(128,20)"><line x1="0" y1="0" x2="22" y2="0" stroke="${P}" stroke-width="3.5"/><line x1="0" y1="0" x2="22" y2="0" stroke="#fff" stroke-width="1.2" stroke-dasharray="4 4"/></g><text x="156" y="22" font-size="8" fill="${G}">Tubula&#231;&#227;o AC</text></g>`;}
 function bItemInner(bk,it){const b=BD[bk],sh=SHAPE[bk];const hw=Math.max(it.w,40)/2,hh=Math.max(it.h,40)/2;const sel=it.id===b.sel;return `<rect x="${-hw}" y="${-hh}" width="${hw*2}" height="${hh*2}" fill="transparent"/>${sel?`<rect x="${-it.w/2-6}" y="${-it.h/2-6}" width="${it.w+12}" height="${it.h+12}" fill="none" stroke="#2e7d54" stroke-width="1.5" stroke-dasharray="4 3"/>`:""}${sh(it)}${sel?`<circle class="rhandle" data-id="${it.id}" cx="${it.w/2+6}" cy="${it.h/2+6}" r="8" fill="#2e7d54" stroke="#fff" stroke-width="2"/>`:""}`;}
 function bDrawSvg(bk){const b=BD[bk];
  const items=b.items.map(it=>`<g class="draggable" data-id="${it.id}" transform="translate(${it.x},${it.y}) rotate(${it.rot})">${bItemInner(bk,it)}</g>`).join("");
