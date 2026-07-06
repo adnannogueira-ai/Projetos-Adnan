@@ -99,7 +99,7 @@
     <h2>Planta baixa</h2>
     <h3>Adicionar pe&#231;a</h3>
     <div class="palette">
-      <button onclick="bAdd('planta','torre')">&#43; Torre</button>
+      <button onclick="bAdd('planta','torre')">&#43; Estrutura</button>
       <button onclick="bAdd('planta','gab')">&#43; Gabinete</button>
       <button onclick="bAdd('planta','base')">&#43; Base</button>
       <button onclick="bAdd('planta','vaga')">&#43; Vaga livre</button>
@@ -186,7 +186,7 @@ acFields.forEach(k=>{$(k).addEventListener("input",()=>{if(mode==="ac")acRender(
 const BD={planta:{items:[],sel:null,idc:1,W:900,H:560},rf:{items:[],sel:null,idc:1,W:900,H:470}};
 const DEFS={
  planta:{
-  torre:{w:70,h:70,label:"Torre",sub:"autoportante"},
+  torre:{w:70,h:70,label:"Torre Autoportante",sub:"Torre Autoportante"},
   gab:{w:60,h:82,label:"Eltek",brand:"Eltek",num:""},
   base:{w:140,h:100,label:"Base"},
   vaga:{w:60,h:82,label:"VAGO"},
@@ -214,7 +214,7 @@ function bClear(bk){const b=BD[bk];if(b.items.length&&!confirm("Remover todas as
 function labT(show,x,y,txt,fs,col,fw){return show?`<text x="${x}" y="${y}" text-anchor="middle" font-size="${fs}" ${fw?'font-weight="700"':''} fill="${col||G}">${esc(txt)}</text>`:"";}
 
 function plLabel(it){if(it.hide)return "";const hw=it.w/2,hh=it.h/2;let main=it.label,sub="";
- if(it.type==="torre")sub=it.sub;else if(it.type==="gab"){main=(it.brand||it.label)+(it.num?" "+it.num:"");sub="gabinete";}
+ if(it.type==="gab"){main=(it.brand||it.label)+(it.num?" "+it.num:"");sub="gabinete";}else if(it.type==="esteira")main=esc(it.label)+": "+(it.w/PXM).toFixed(1)+" m";
  else if(it.type==="vaga")sub="novo gab.";else if(it.type==="tubo")main=esc(it.label)+": "+esc(it.metros)+" m";
  const lp=it.lpos||(["container","abrigo","qtm","quadro","vaga","gab"].includes(it.type)?"centro":"abaixo");
  let x=0,y=0,anc="middle",y2=0;
@@ -224,13 +224,14 @@ function plLabel(it){if(it.hide)return "";const hw=it.w/2,hh=it.h/2;let main=it.
  let s=`<text x="${x}" y="${y}" text-anchor="${anc}" font-size="10.5" font-weight="700" fill="${P}">${esc(main)}</text>`;
  if(sub)s+=`<text x="${x}" y="${y2}" text-anchor="${anc}" font-size="8.5" fill="${G}">${esc(sub)}</text>`;
  return s;}
+function plDoor(w,hh){const dw=Math.min(26,w*0.4);return `<line x1="${-dw/2}" y1="${hh}" x2="${dw/2}" y2="${hh}" stroke="#fff" stroke-width="3.5"/><line x1="${-dw/2}" y1="${hh}" x2="${-dw/2}" y2="${hh-dw}" stroke="${P}" stroke-width="1.5"/><path d="M ${-dw/2} ${hh-dw} A ${dw} ${dw} 0 0 1 ${dw/2} ${hh}" fill="none" stroke="${P}" stroke-width="1" stroke-dasharray="3 3"/>`;}
 function plShape(it){const w=it.w,h=it.h,hw=w/2,hh=h/2,t=it.type;let g="";
- if(t==="torre"){if(it.sub==="autoportante")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${P}" stroke-width="2.5"/><line x1="${-hw}" y1="${-hh}" x2="${hw}" y2="${hh}" stroke="${P}" stroke-width="1.5"/><line x1="${hw}" y1="${-hh}" x2="${-hw}" y2="${hh}" stroke="${P}" stroke-width="1.5"/>`;else if(it.sub==="estaiada")g=`<circle r="12" fill="none" stroke="${P}" stroke-width="2.5"/>`+[0,120,240].map(a=>{const r=(a-90)*Math.PI/180;return `<line x1="0" y1="0" x2="${hw*Math.cos(r)}" y2="${hh*Math.sin(r)}" stroke="${P}" stroke-width="1.5"/><circle cx="${hw*Math.cos(r)}" cy="${hh*Math.sin(r)}" r="3" fill="${P}"/>`;}).join("");else if(it.sub==="mastro")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${P}" stroke-width="2.5"/><circle r="${Math.max(3,Math.min(hw,hh)*0.35)}" fill="${P}"/>`;else g=`<circle r="10" fill="${P}"/>`;}
+ if(t==="torre"){var s=it.sub;if(s==="Torre Estaiada")g=`<circle r="12" fill="none" stroke="${P}" stroke-width="2.5"/>`+[0,120,240].map(a=>{const r=(a-90)*Math.PI/180;return `<line x1="0" y1="0" x2="${hw*Math.cos(r)}" y2="${hh*Math.sin(r)}" stroke="${P}" stroke-width="1.5"/><circle cx="${hw*Math.cos(r)}" cy="${hh*Math.sin(r)}" r="3" fill="${P}"/>`;}).join("");else if(s==="Mastro - Roof Top")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${P}" stroke-width="2.5"/><circle r="${Math.max(3,Math.min(hw,hh)*0.35)}" fill="${P}"/>`;else if(s==="Poste de Concreto")g=`<circle r="11" fill="none" stroke="${P}" stroke-width="2.5"/><circle r="4.5" fill="${P}"/>`;else if(s==="Torre - Poste")g=`<circle r="10" fill="${P}"/>`;else if(s==="Biosites")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" rx="10" fill="${LG}" stroke="${P}" stroke-width="2.5"/><circle r="${Math.max(4,Math.min(hw,hh)*0.3)}" fill="${P}"/>`;else g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${P}" stroke-width="2.5"/><line x1="${-hw}" y1="${-hh}" x2="${hw}" y2="${hh}" stroke="${P}" stroke-width="1.5"/><line x1="${hw}" y1="${-hh}" x2="${-hw}" y2="${hh}" stroke="${P}" stroke-width="1.5"/>`;}
  else if(t==="gab")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="${LG}" stroke="${P}" stroke-width="2" rx="4"/>`;
  else if(t==="base")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${G}" stroke-width="1.6" stroke-dasharray="6 4"/>`;
  else if(t==="vaga")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#eafaf0" stroke="#2e7d54" stroke-width="1.8" stroke-dasharray="6 4"/>`;
- else if(t==="container")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#f2f5f7" stroke="${P}" stroke-width="2" rx="3"/>`;
- else if(t==="abrigo")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#f2f5f7" stroke="${P}" stroke-width="2.4"/><line x1="${-hw}" y1="${-hh+10}" x2="${hw}" y2="${-hh+10}" stroke="${P}" stroke-width="1"/>`;
+ else if(t==="container")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#f2f5f7" stroke="${P}" stroke-width="2" rx="3"/>`+plDoor(w,hh);
+ else if(t==="abrigo")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#f2f5f7" stroke="${P}" stroke-width="2.4"/><line x1="${-hw}" y1="${-hh+10}" x2="${hw}" y2="${-hh+10}" stroke="${P}" stroke-width="1"/>`+plDoor(w,hh);
  else if(t==="esteira"){let r="";for(let x=-hw+8;x<hw;x+=12)r+=`<line x1="${x}" y1="${-hh}" x2="${x}" y2="${hh}" stroke="${A}" stroke-width="1.2"/>`;g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${A}" stroke-width="1.8"/>${r}`;}
  else if(t==="tubo")g=`<line x1="${-hw}" y1="0" x2="${hw}" y2="0" stroke="${P}" stroke-width="5"/><line x1="${-hw}" y1="0" x2="${hw}" y2="0" stroke="#fff" stroke-width="1.6" stroke-dasharray="6 6"/>`;
  else if(t==="portao")g=`<g transform="scale(${it.flip?-1:1},1)"><line x1="${-hw}" y1="0" x2="${hw}" y2="0" stroke="${A}" stroke-width="3"/><path d="M ${-hw} 0 A ${w} ${w} 0 0 1 ${-hw+w*0.7} ${-w*0.7}" fill="none" stroke="${A}" stroke-width="1" stroke-dasharray="3 3"/></g>`;
@@ -289,7 +290,7 @@ const COLORS=["#d9d9d9","#8bc34a","#f0a860","#7fb6d9","#c86fb0","#b39ddb","#222"
 function bEditor(bk){const ed=$(bk+"-editor"),it=BD[bk].items.find(x=>x.id===BD[bk].sel);
  if(!it){ed.classList.add("hidden");ed.innerHTML="";return;}
  ed.classList.remove("hidden");let x="";
- if(it.type==="torre")x=`<label>Tipo de estrutura</label><select onchange="bSet('sub',this.value)">${["autoportante","estaiada","poste","mastro"].map(o=>`<option ${it.sub===o?"selected":""}>${o}</option>`).join("")}</select>`;
+ if(it.type==="torre")x=`<label>Tipo de estrutura vertical</label><select onchange="bSetSub(this.value)">${["Torre Autoportante","Torre Estaiada","Torre - Poste","Poste de Concreto","Mastro - Roof Top","Biosites"].map(o=>`<option ${it.sub===o?"selected":""}>${o}</option>`).join("")}</select>`;
  if(it.type==="gab"){const br=["Eltek","Delta","Clemar","Alfasite","Highline","Moura","Outro"];x=`<label>Marca</label><select onchange="bSetBrand(this.value)">${br.map(o=>`<option ${it.brand===o?"selected":""}>${o}</option>`).join("")}</select><label>N&#186; do gabinete</label><input value="${esc(it.num||"")}" oninput="bSet('num',this.value)" placeholder="1, 2, 3...">`;}
  if(it.type==="tubo")x=`<label>Metragem (m)</label><input inputmode="decimal" value="${esc(it.metros)}" oninput="bSet('metros',this.value)">`;
  if(it.type==="antena")x=`<label>Portas (separadas por espa&#231;o)</label><input value="${esc(it.ports||"")}" oninput="bSet('ports',this.value)">`;
@@ -313,6 +314,7 @@ function bEditor(bk){const ed=$(bk+"-editor"),it=BD[bk].items.find(x=>x.id===BD[
 }
 function bSetM(k,v){const it=bSel();if(!it)return;const n=parseFloat(v);if(v===""||isNaN(n))return;it[k]=Math.max(6,n*PXM);bDrawSvg(mode);}
 function bSetLpos(v){const it=bSel();if(!it)return;if(v==="oculto"){it.hide=true;}else{it.hide=false;it.lpos=v;}bDrawSvg(mode);}
+function bSetSub(v){const it=bSel();if(it){it.sub=v;it.label=v;bRender(mode);}}
 /* ===== EXPORT / SAVE ===== */
 function getSVGString(){const el=activeSvg().cloneNode(true);el.querySelectorAll(".draggable").forEach(n=>n.removeAttribute("class"));return '<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(el);}
 function dl(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();}
