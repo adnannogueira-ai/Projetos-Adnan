@@ -150,6 +150,8 @@
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const P="#42738d",A="#f19f53",G="#5a5a5a",LG="#e8edf1";
+const PXM=50;
+function ISMETRIC(t){return t==="torre"||t==="gab"||t==="esteira";}
 let mode="ac";
 function gSite(){return ($("g-site").value||"").toUpperCase();}
 function gDate(){const v=$("g-date").value;if(!v)return "";const p=v.split("-");return p[2]+"/"+p[1]+"/"+p[0];}
@@ -238,17 +240,32 @@ function rfShape(it){const w=it.w,h=it.h,hw=w/2,hh=h/2,t=it.type,L=!it.hide;
 const SHAPE={planta:plShape,rf:rfShape};
 const TITLE={planta:"PLANTA BAIXA",rf:"CROQUI RF &#8212; SISTEMA IRRADIANTE"};
 
-function bDrawSvg(bk){const b=BD[bk],sh=SHAPE[bk];
- const items=b.items.map(it=>{const hw=Math.max(it.w,40)/2,hh=Math.max(it.h,40)/2;return `<g class="draggable" data-id="${it.id}" transform="translate(${it.x},${it.y}) rotate(${it.rot})"><rect x="${-hw}" y="${-hh}" width="${hw*2}" height="${hh*2}" fill="transparent"/>${it.id===b.sel?`<rect x="${-it.w/2-6}" y="${-it.h/2-6}" width="${it.w+12}" height="${it.h+12}" fill="none" stroke="#2e7d54" stroke-width="1.5" stroke-dasharray="4 3"/>`:""}${sh(it)}</g>`;}).join("");
- const bg=bk==="planta"?`<rect x="40" y="60" width="${b.W-80}" height="${b.H-115}" fill="none" stroke="${G}" stroke-width="2.5"/><text x="50" y="77" font-size="11" fill="${G}" font-style="italic">muro do site</text>`:"";
+function bItemInner(bk,it){const b=BD[bk],sh=SHAPE[bk];const hw=Math.max(it.w,40)/2,hh=Math.max(it.h,40)/2;const sel=it.id===b.sel;return `<rect x="${-hw}" y="${-hh}" width="${hw*2}" height="${hh*2}" fill="transparent"/>${sel?`<rect x="${-it.w/2-6}" y="${-it.h/2-6}" width="${it.w+12}" height="${it.h+12}" fill="none" stroke="#2e7d54" stroke-width="1.5" stroke-dasharray="4 3"/>`:""}${sh(it)}${sel?`<circle class="rhandle" data-id="${it.id}" cx="${it.w/2+6}" cy="${it.h/2+6}" r="8" fill="#2e7d54" stroke="#fff" stroke-width="2"/>`:""}`;}
+function bDrawSvg(bk){const b=BD[bk];
+ const items=b.items.map(it=>`<g class="draggable" data-id="${it.id}" transform="translate(${it.x},${it.y}) rotate(${it.rot})">${bItemInner(bk,it)}</g>`).join("");
+ let bg="";
+ if(bk==="planta"){bg=`<rect x="40" y="60" width="${b.W-80}" height="${b.H-115}" fill="none" stroke="${G}" stroke-width="2.5"/><text x="50" y="77" font-size="11" fill="${G}" font-style="italic">muro do site</text><g transform="translate(${b.W-170},${b.H-42})"><line x1="0" y1="0" x2="${PXM}" y2="0" stroke="${P}" stroke-width="3"/><line x1="0" y1="-4" x2="0" y2="4" stroke="${P}" stroke-width="2"/><line x1="${PXM}" y1="-4" x2="${PXM}" y2="4" stroke="${P}" stroke-width="2"/><text x="${PXM/2}" y="-6" text-anchor="middle" font-size="10" fill="${P}">1 m</text><text x="${PXM+8}" y="4" font-size="10" fill="${G}">Escala 1:100</text></g>`;}
  $("box-"+bk).innerHTML=`<svg id="svg-${bk}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${b.W} ${b.H}" font-family="Roboto, Arial, sans-serif"><rect width="${b.W}" height="${b.H}" fill="#fff"/><text x="${b.W/2}" y="28" text-anchor="middle" font-size="18" font-weight="700" fill="${P}">${TITLE[bk]}</text><text x="${b.W/2}" y="46" text-anchor="middle" font-size="12" fill="${G}">${subt()}</text>${bg}${items}<text x="40" y="${b.H-12}" font-size="11" font-weight="700" fill="${P}">nG Solutions</text></svg>`;
- bDrag(bk);}
+ $("svg-"+bk).addEventListener("pointerdown",bDown);}
 function bRender(bk){bDrawSvg(bk);bEditor(bk);}
-let bD=null;
-function bDrag(bk){document.querySelectorAll("#svg-"+bk+" .draggable").forEach(g=>g.addEventListener("pointerdown",bStart));}
-function bStart(e){e.preventDefault();const bk=mode,b=BD[bk],id=+e.currentTarget.dataset.id,it=b.items.find(x=>x.id===id),p=svgPoint($("svg-"+bk),e);bD={bk,id,dx:p.x-it.x,dy:p.y-it.y};if(b.sel!==id){b.sel=id;bRender(bk);}window.addEventListener("pointermove",bMove);window.addEventListener("pointerup",bEnd);}
-function bMove(e){if(!bD)return;const b=BD[bD.bk],it=b.items.find(x=>x.id===bD.id),p=svgPoint($("svg-"+bD.bk),e);it.x=Math.max(15,Math.min(b.W-15,p.x-bD.dx));it.y=Math.max(50,Math.min(b.H-25,p.y-bD.dy));const g=[...document.querySelectorAll("#svg-"+bD.bk+" .draggable")].find(n=>+n.dataset.id===bD.id);if(g)g.setAttribute("transform",`translate(${it.x},${it.y}) rotate(${it.rot})`);}
-function bEnd(){bD=null;window.removeEventListener("pointermove",bMove);window.removeEventListener("pointerup",bEnd);}
+let bD=null,bRz=null;const PTS=new Map();let PINCH=null;
+function gEl(bk,id){return [...document.querySelectorAll("#svg-"+bk+" .draggable")].find(n=>+n.dataset.id===id);}
+function redrawItem(bk,it){const g=gEl(bk,it.id);if(g)g.innerHTML=bItemInner(bk,it);}
+function localOf(it,px,py){const dx=px-it.x,dy=py-it.y,a=-it.rot*Math.PI/180;return {lx:dx*Math.cos(a)-dy*Math.sin(a),ly:dx*Math.sin(a)+dy*Math.cos(a)};}
+function bDown(e){const bk=mode,b=BD[bk],svg=$("svg-"+bk);PTS.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ const rh=e.target.closest?e.target.closest(".rhandle"):null;
+ const g=e.target.closest?e.target.closest(".draggable"):null;
+ if(rh){e.preventDefault();const id=+rh.dataset.id;if(b.sel!==id){b.sel=id;bRender(bk);}bRz={bk,id};return;}
+ if(g){e.preventDefault();const id=+g.dataset.id,it=b.items.find(x=>x.id===id),p=svgPoint(svg,e);if(b.sel!==id){b.sel=id;bRender(bk);}bD={bk,id,dx:p.x-it.x,dy:p.y-it.y};}
+}
+function bPMove(e){if(mode==="ac")return;const bk=mode,b=BD[bk],svg=$("svg-"+bk);if(!svg)return;
+ if(PTS.has(e.pointerId))PTS.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(PTS.size>=2&&b.sel!=null){const v=[...PTS.values()],d=Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y),it=b.items.find(x=>x.id===b.sel);if(it){if(!PINCH){PINCH={d0:d,w0:it.w,h0:it.h};bD=null;bRz=null;}const s=Math.max(0.15,d/PINCH.d0);it.w=Math.max(12,PINCH.w0*s);it.h=Math.max(12,PINCH.h0*s);redrawItem(bk,it);}return;}
+ if(bRz){const it=b.items.find(x=>x.id===bRz.id),p=svgPoint(svg,e),L=localOf(it,p.x,p.y);it.w=Math.max(12,Math.abs(L.lx)*2);it.h=Math.max(12,Math.abs(L.ly)*2);redrawItem(bk,it);return;}
+ if(bD){const it=b.items.find(x=>x.id===bD.id),p=svgPoint(svg,e);it.x=Math.max(15,Math.min(b.W-15,p.x-bD.dx));it.y=Math.max(50,Math.min(b.H-25,p.y-bD.dy));const g=gEl(bk,it.id);if(g)g.setAttribute("transform",`translate(${it.x},${it.y}) rotate(${it.rot})`);}
+}
+function bUp(e){PTS.delete(e.pointerId);if(PTS.size<2)PINCH=null;if(PTS.size===0){const ended=bD||bRz;bD=null;bRz=null;if(ended&&mode!=="ac")bEditor(mode);}}
+window.addEventListener("pointermove",bPMove);window.addEventListener("pointerup",bUp);window.addEventListener("pointercancel",bUp);
 function bSel(){const b=BD[mode];return b.items.find(x=>x.id===b.sel);}
 function bSet(k,v){const it=bSel();if(it){it[k]=v;bDrawSvg(mode);}}
 function bSetNum(k,v){const it=bSel();if(!it)return;const n=parseFloat(v);if(v===""||isNaN(n))return;it[k]=n;bDrawSvg(mode);}
@@ -267,15 +284,19 @@ function bEditor(bk){const ed=$(bk+"-editor"),it=BD[bk].items.find(x=>x.id===BD[
  if(it.type==="antena")x=`<label>Portas (separadas por espa&#231;o)</label><input value="${esc(it.ports||"")}" oninput="bSet('ports',this.value)">`;
  if(it.type==="baseband")x=`<label>Portas (ex.: A B C D E F)</label><input value="${esc(it.ports||"")}" oninput="bSet('ports',this.value)">`;
  let colr="";if(["rru","air","rp","antena","cabo","fibra"].includes(it.type))colr=`<label>Cor</label><div class="swatches">${COLORS.map(c=>`<div class="sw" style="background:${c}" onclick="bSet('color','${c}')"></div>`).join("")}</div>`;
- const isLine=["esteira","tubo","portao","cabo","fibra"].includes(it.type);
+ const metric=ISMETRIC(it.type);
+ const dim=metric
+  ? `<div class="row" style="margin-top:8px"><div><label>Comprimento (m)</label><input inputmode="decimal" value="${(it.w/PXM).toFixed(2)}" oninput="bSetM('w',this.value)"></div><div><label>Largura (m)</label><input inputmode="decimal" value="${(it.h/PXM).toFixed(2)}" oninput="bSetM('h',this.value)"></div></div><div class="muted">Escala 1:100 &#183; medidas reais em metros</div>`
+  : `<div class="row" style="margin-top:8px"><div><label>Comprimento</label><input inputmode="decimal" value="${it.w}" oninput="bSetNum('w',this.value)"></div><div><label>Largura</label><input inputmode="decimal" value="${it.h}" oninput="bSetNum('h',this.value)"></div></div>`;
  ed.innerHTML=`<b style="color:${P}">Pe&#231;a selecionada</b>
   ${it.type==="rosa"?"":`<label>${it.type==="rru"||it.type==="air"?"Texto (use / p/ quebrar linha)":"R&#243;tulo"}</label><input value="${esc(it.label)}" oninput="bSet('label',this.value)">`}
   ${x}${colr}
   <div class="chk"><input type="checkbox" id="chk-hide" ${it.hide?"checked":""} onchange="bHide(this.checked)"><label for="chk-hide" style="margin:0">Ocultar descri&#231;&#227;o</label></div>
-  <div class="row" style="margin-top:8px"><div><label>Largura</label><input inputmode="decimal" value="${it.w}" oninput="bSetNum('w',this.value)"></div><div><label>${isLine?"Comprimento":"Comprimento"}</label><input inputmode="decimal" value="${it.h}" oninput="bSetNum('h',this.value)"></div></div>
+  ${dim}
+  <div class="muted">Dica: arraste a al&#231;a verde no canto da pe&#231;a p/ redimensionar, ou use dois dedos (pin&#231;a).</div>
   <div class="btns" style="margin-top:8px"><button class="b-ghost" onclick="bRotate(-15)">&#8630;15&#176;</button><button class="b-ghost" onclick="bRotate(15)">15&#176;&#8631;</button><button class="b-ghost" onclick="bRotate(90)">90&#176;</button><button class="b-ghost" onclick="bDup()">Duplicar</button><button class="b-red" onclick="bDel()">Excluir</button></div>`;
 }
-
+function bSetM(k,v){const it=bSel();if(!it)return;const n=parseFloat(v);if(v===""||isNaN(n))return;it[k]=Math.max(6,n*PXM);bDrawSvg(mode);}
 /* ===== EXPORT / SAVE ===== */
 function getSVGString(){const el=activeSvg().cloneNode(true);el.querySelectorAll(".draggable").forEach(n=>n.removeAttribute("class"));return '<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(el);}
 function dl(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();}
