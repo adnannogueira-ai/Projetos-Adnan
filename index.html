@@ -18,7 +18,8 @@
   header .brand{font-weight:700;font-size:18px;}header .brand span{color:var(--acc);}
   .gbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
   .gbar label{font-size:12px;font-weight:600;margin:0 4px 0 0;}
-  .gbar input{padding:6px 8px;border-radius:6px;border:none;font-size:14px;font-family:inherit;}
+  .gbar input{padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.14);color:#fff;font-weight:700;font-size:15px;font-family:inherit;color-scheme:dark;}
+  .gbar label{color:#fff;}
   #g-site{text-transform:uppercase;width:150px;font-weight:700;}
   .tabs{display:flex;gap:6px;padding:10px 18px 0;flex-wrap:wrap;}
   .tab{cursor:pointer;border:1px solid var(--line);border-bottom:none;background:var(--lg);color:var(--prim);padding:9px 16px;border-radius:8px 8px 0 0;font-weight:700;font-size:13px;}
@@ -214,17 +215,17 @@ function bClear(bk){const b=BD[bk];if(b.items.length&&!confirm("Remover todas as
 function labT(show,x,y,txt,fs,col,fw){return show?`<text x="${x}" y="${y}" text-anchor="middle" font-size="${fs}" ${fw?'font-weight="700"':''} fill="${col||G}">${esc(txt)}</text>`:"";}
 
 function plLabel(it){if(it.hide)return "";const hw=it.w/2,hh=it.h/2;let main=it.label,sub="";
- if(it.type==="gab"){main=(it.brand||it.label)+(it.num?" "+it.num:"");sub="gabinete";}else if(it.type==="esteira")main=esc(it.label)+": "+(it.w/PXM).toFixed(1)+" m";
- else if(it.type==="vaga")sub="novo gab.";else if(it.type==="tubo")main=esc(it.label)+": "+esc(it.metros)+" m";
+ if(it.type==="gab"){main=(it.brand||it.label)+(it.num?" "+it.num:"");sub="gabinete";}else if(it.type==="esteira")main=(it.w/PXM).toFixed(1)+" m";
+ else if(it.type==="vaga")sub="novo gab.";else if(it.type==="tubo")main=esc(it.metros)+" m";
  const lp=it.lpos||(["container","abrigo","qtm","quadro","vaga","gab"].includes(it.type)?"centro":"abaixo");
  let x=0,y=0,anc="middle",y2=0;
  if(lp==="abaixo"){x=0;y=hh+13;y2=hh+25;}else if(lp==="acima"){x=0;y=-hh-6-(sub?12:0);y2=-hh-6;}
  else if(lp==="esquerda"){x=-hw-8;anc="end";y=sub?-2:3;y2=11;}else if(lp==="direita"){x=hw+8;anc="start";y=sub?-2:3;y2=11;}
  else {x=0;y=sub?-2:4;y2=11;}
- let s=`<text x="${x}" y="${y}" text-anchor="${anc}" font-size="10.5" font-weight="700" fill="${P}">${esc(main)}</text>`;
+ const fs=(lp==="centro")?Math.max(7,Math.min(12,(it.w-10)/(String(main).length*0.62))):((it.type==="esteira"||it.type==="tubo")?11:10.5);let s=`<text x="${x}" y="${y}" text-anchor="${anc}" font-size="${fs}" font-weight="700" fill="${P}">${esc(main)}</text>`;
  if(sub)s+=`<text x="${x}" y="${y2}" text-anchor="${anc}" font-size="8.5" fill="${G}">${esc(sub)}</text>`;
  return s;}
-function plDoor(w,hh){const dw=Math.min(26,w*0.4);return `<line x1="${-dw/2}" y1="${hh}" x2="${dw/2}" y2="${hh}" stroke="#fff" stroke-width="3.5"/><line x1="${-dw/2}" y1="${hh}" x2="${-dw/2}" y2="${hh-dw}" stroke="${P}" stroke-width="1.5"/><path d="M ${-dw/2} ${hh-dw} A ${dw} ${dw} 0 0 1 ${dw/2} ${hh}" fill="none" stroke="${P}" stroke-width="1" stroke-dasharray="3 3"/>`;}
+function plDoor(w,hh){const hw=w/2,dw=Math.min(26,w*0.4),x0=-hw+7;return `<line x1="${x0}" y1="${hh}" x2="${x0+dw}" y2="${hh}" stroke="#fff" stroke-width="3.5"/><line x1="${x0}" y1="${hh}" x2="${x0}" y2="${hh-dw}" stroke="${P}" stroke-width="1.5"/><path d="M ${x0} ${hh-dw} A ${dw} ${dw} 0 0 1 ${x0+dw} ${hh}" fill="none" stroke="${P}" stroke-width="1" stroke-dasharray="3 3"/>`;}
 function plShape(it){const w=it.w,h=it.h,hw=w/2,hh=h/2,t=it.type;let g="";
  if(t==="torre"){var s=it.sub;if(s==="Torre Estaiada")g=`<circle r="12" fill="none" stroke="${P}" stroke-width="2.5"/>`+[0,120,240].map(a=>{const r=(a-90)*Math.PI/180;return `<line x1="0" y1="0" x2="${hw*Math.cos(r)}" y2="${hh*Math.sin(r)}" stroke="${P}" stroke-width="1.5"/><circle cx="${hw*Math.cos(r)}" cy="${hh*Math.sin(r)}" r="3" fill="${P}"/>`;}).join("");else if(s==="Mastro - Roof Top")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${P}" stroke-width="2.5"/><circle r="${Math.max(3,Math.min(hw,hh)*0.35)}" fill="${P}"/>`;else if(s==="Poste de Concreto")g=`<circle r="11" fill="none" stroke="${P}" stroke-width="2.5"/><circle r="4.5" fill="${P}"/>`;else if(s==="Torre - Poste")g=`<circle r="10" fill="${P}"/>`;else if(s==="Biosites")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" rx="10" fill="${LG}" stroke="${P}" stroke-width="2.5"/><circle r="${Math.max(4,Math.min(hw,hh)*0.3)}" fill="${P}"/>`;else g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${P}" stroke-width="2.5"/><line x1="${-hw}" y1="${-hh}" x2="${hw}" y2="${hh}" stroke="${P}" stroke-width="1.5"/><line x1="${hw}" y1="${-hh}" x2="${-hw}" y2="${hh}" stroke="${P}" stroke-width="1.5"/>`;}
  else if(t==="gab")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="${LG}" stroke="${P}" stroke-width="2" rx="4"/>`;
@@ -251,12 +252,13 @@ function rfShape(it){const w=it.w,h=it.h,hw=w/2,hh=h/2,t=it.type,L=!it.hide;
 const SHAPE={planta:plShape,rf:rfShape};
 const TITLE={planta:"PLANTA BAIXA",rf:"CROQUI RF &#8212; SISTEMA IRRADIANTE"};
 
+function plLegend(b){const x=b.W-252,y=68;return `<g transform="translate(${x},${y})"><rect width="242" height="46" fill="#fff" stroke="${G}" stroke-width="1" rx="6"/><text x="8" y="15" font-size="9.5" font-weight="700" fill="${P}">LEGENDA</text><g transform="translate(14,33)"><rect x="0" y="-6" width="28" height="12" fill="none" stroke="${A}" stroke-width="1.4"/><line x1="7" y1="-6" x2="7" y2="6" stroke="${A}"/><line x1="14" y1="-6" x2="14" y2="6" stroke="${A}"/><line x1="21" y1="-6" x2="21" y2="6" stroke="${A}"/></g><text x="48" y="36" font-size="9" fill="${G}">Esteiramento</text><g transform="translate(132,33)"><line x1="0" y1="0" x2="28" y2="0" stroke="${P}" stroke-width="4"/><line x1="0" y1="0" x2="28" y2="0" stroke="#fff" stroke-width="1.4" stroke-dasharray="5 5"/></g><text x="164" y="36" font-size="9" fill="${G}">Tubula&#231;&#227;o AC</text></g>`;}
 function bItemInner(bk,it){const b=BD[bk],sh=SHAPE[bk];const hw=Math.max(it.w,40)/2,hh=Math.max(it.h,40)/2;const sel=it.id===b.sel;return `<rect x="${-hw}" y="${-hh}" width="${hw*2}" height="${hh*2}" fill="transparent"/>${sel?`<rect x="${-it.w/2-6}" y="${-it.h/2-6}" width="${it.w+12}" height="${it.h+12}" fill="none" stroke="#2e7d54" stroke-width="1.5" stroke-dasharray="4 3"/>`:""}${sh(it)}${sel?`<circle class="rhandle" data-id="${it.id}" cx="${it.w/2+6}" cy="${it.h/2+6}" r="8" fill="#2e7d54" stroke="#fff" stroke-width="2"/>`:""}`;}
 function bDrawSvg(bk){const b=BD[bk];
  const items=b.items.map(it=>`<g class="draggable" data-id="${it.id}" transform="translate(${it.x},${it.y}) rotate(${it.rot})">${bItemInner(bk,it)}</g>`).join("");
  let bg="";
  if(bk==="planta"){bg=`<rect x="40" y="60" width="${b.W-80}" height="${b.H-115}" fill="none" stroke="${G}" stroke-width="2.5"/><text x="50" y="77" font-size="11" fill="${G}" font-style="italic">muro do site</text><g transform="translate(${b.W-170},${b.H-42})"><line x1="0" y1="0" x2="${PXM}" y2="0" stroke="${P}" stroke-width="3"/><line x1="0" y1="-4" x2="0" y2="4" stroke="${P}" stroke-width="2"/><line x1="${PXM}" y1="-4" x2="${PXM}" y2="4" stroke="${P}" stroke-width="2"/><text x="${PXM/2}" y="-6" text-anchor="middle" font-size="10" fill="${P}">1 m</text><text x="${PXM+8}" y="4" font-size="10" fill="${G}">Escala 1:100</text></g>`;}
- $("box-"+bk).innerHTML=`<svg id="svg-${bk}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${b.W} ${b.H}" font-family="Roboto, Arial, sans-serif"><rect width="${b.W}" height="${b.H}" fill="#fff"/><text x="${b.W/2}" y="28" text-anchor="middle" font-size="18" font-weight="700" fill="${P}">${TITLE[bk]}</text><text x="${b.W/2}" y="46" text-anchor="middle" font-size="12" fill="${G}">${subt()}</text>${bg}${items}<text x="40" y="${b.H-12}" font-size="11" font-weight="700" fill="${P}">nG Solutions</text></svg>`;
+ $("box-"+bk).innerHTML=`<svg id="svg-${bk}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${b.W} ${b.H}" font-family="Roboto, Arial, sans-serif"><rect width="${b.W}" height="${b.H}" fill="#fff"/><text x="${b.W/2}" y="28" text-anchor="middle" font-size="18" font-weight="700" fill="${P}">${TITLE[bk]}</text><text x="${b.W/2}" y="46" text-anchor="middle" font-size="12" fill="${G}">${subt()}</text>${bg}${items}${bk==="planta"?plLegend(b):""}<text x="40" y="${b.H-12}" font-size="11" font-weight="700" fill="${P}">nG Solutions</text></svg>`;
  $("svg-"+bk).addEventListener("pointerdown",bDown);}
 function bRender(bk){bDrawSvg(bk);bEditor(bk);}
 let bD=null,bRz=null;const PTS=new Map();let PINCH=null;
