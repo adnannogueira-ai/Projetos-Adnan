@@ -92,7 +92,7 @@
     <div class="muted">Arraste as caixas no croqui.</div>
   </div>
   <div class="panel preview"><h2>Croqui &#8212; Energia AC</h2><div id="box-ac"></div>
-    <div class="btns" style="margin-top:10px"><button class="b-acc" onclick="downloadPNG()">PNG</button><button class="b-acc" onclick="downloadSVG()">SVG</button><button class="b-ghost" onclick="saveProject()">Salvar</button><button class="b-ghost" onclick="document.getElementById('load').click()">Abrir</button></div>
+    <div class="btns" style="margin-top:10px"><button class="b-acc" onclick="downloadPNG()">PNG</button><button class="b-acc" onclick="downloadJPG()">JPG</button><button class="b-acc" onclick="downloadPDF()">PDF</button><button class="b-acc" onclick="downloadSVG()">SVG</button><button class="b-ghost" onclick="saveProject()">Salvar</button><button class="b-ghost" onclick="document.getElementById('load').click()">Abrir</button></div>
   </div>
 </div>
 
@@ -118,7 +118,7 @@
     <div class="muted">Toque na pe&#231;a p/ selecionar e arraste. No editor: renomear, ocultar descri&#231;&#227;o, medidas (digite livre), girar, excluir.</div>
   </div>
   <div class="panel preview"><h2>Croqui &#8212; Planta baixa</h2><div id="box-planta"></div>
-    <div class="btns" style="margin-top:10px"><button class="b-acc" onclick="downloadPNG()">PNG</button><button class="b-acc" onclick="downloadSVG()">SVG</button><button class="b-red" onclick="bClear('planta')">Limpar tudo</button><button class="b-ghost" onclick="saveProject()">Salvar</button><button class="b-ghost" onclick="document.getElementById('load').click()">Abrir</button></div>
+    <div class="btns" style="margin-top:10px"><button class="b-acc" onclick="downloadPNG()">PNG</button><button class="b-acc" onclick="downloadJPG()">JPG</button><button class="b-acc" onclick="downloadPDF()">PDF</button><button class="b-acc" onclick="downloadSVG()">SVG</button><button class="b-red" onclick="bClear('planta')">Limpar tudo</button><button class="b-ghost" onclick="saveProject()">Salvar</button><button class="b-ghost" onclick="document.getElementById('load').click()">Abrir</button></div>
   </div>
 </div>
 
@@ -141,7 +141,7 @@
     <div class="muted">Monte antenas, RRUs, AIR, BaseBand e ligue com cabo (preto) / fibra-RET (azul). Rosa 360&#176; = refer&#234;ncia de azimute. Ilustrativo.</div>
   </div>
   <div class="panel preview"><h2>Croqui &#8212; RF</h2><div id="box-rf"></div>
-    <div class="btns" style="margin-top:10px"><button class="b-acc" onclick="downloadPNG()">PNG</button><button class="b-acc" onclick="downloadSVG()">SVG</button><button class="b-red" onclick="bClear('rf')">Limpar tudo</button><button class="b-ghost" onclick="saveProject()">Salvar</button><button class="b-ghost" onclick="document.getElementById('load').click()">Abrir</button></div>
+    <div class="btns" style="margin-top:10px"><button class="b-acc" onclick="downloadPNG()">PNG</button><button class="b-acc" onclick="downloadJPG()">JPG</button><button class="b-acc" onclick="downloadPDF()">PDF</button><button class="b-acc" onclick="downloadSVG()">SVG</button><button class="b-red" onclick="bClear('rf')">Limpar tudo</button><button class="b-ghost" onclick="saveProject()">Salvar</button><button class="b-ghost" onclick="document.getElementById('load').click()">Abrir</button></div>
   </div>
 </div>
 
@@ -333,7 +333,21 @@ function getSVGString(){const el=activeSvg().cloneNode(true);el.querySelectorAll
 function dl(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();}
 function fname(ext){return "Croqui_"+mode+"_"+(gSite()||"site").replace(/\s+/g,"_")+"."+ext;}
 function downloadSVG(){dl(new Blob([getSVGString()],{type:"image/svg+xml"}),fname("svg"));}
-function downloadPNG(){const svg=activeSvg(),vb=svg.viewBox.baseVal,s=getSVGString(),img=new Image();img.onload=function(){const c=document.createElement("canvas");c.width=vb.width*2;c.height=vb.height*2;const x=c.getContext("2d");x.scale(2,2);x.fillStyle="#fff";x.fillRect(0,0,vb.width,vb.height);x.drawImage(img,0,0,vb.width,vb.height);c.toBlob(b=>dl(b,fname("png")),"image/png");};img.src="data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(s)));}
+function renderRaster(type,quality,cb){const svg=activeSvg(),vb=svg.viewBox.baseVal,s=getSVGString(),img=new Image();img.onload=function(){const cw=Math.round(vb.width*2),ch=Math.round(vb.height*2);const c=document.createElement("canvas");c.width=cw;c.height=ch;const x=c.getContext("2d");x.scale(2,2);x.fillStyle="#fff";x.fillRect(0,0,vb.width,vb.height);x.drawImage(img,0,0,vb.width,vb.height);c.toBlob(b=>cb(b,cw,ch),type,quality);};img.src="data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(s)));}
+function downloadPNG(){renderRaster("image/png",undefined,b=>dl(b,fname("png")));}
+function downloadJPG(){renderRaster("image/jpeg",0.92,b=>dl(b,fname("jpg")));}
+function buildPDF(jpg,w,h){const enc=s=>new TextEncoder().encode(s);const parts=[];let len=0;const offs=[];const push=u=>{parts.push(u);len+=u.length;};const obj=n=>{offs[n]=len;};
+ push(enc("%PDF-1.3\n"));
+ obj(1);push(enc("1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n"));
+ obj(2);push(enc("2 0 obj\n<</Type/Pages/Kids[3 0 R]/Count 1>>\nendobj\n"));
+ obj(3);push(enc("3 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 "+w+" "+h+"]/Resources<</XObject<</Im0 4 0 R>>>>/Contents 5 0 R>>\nendobj\n"));
+ obj(4);push(enc("4 0 obj\n<</Type/XObject/Subtype/Image/Width "+w+"/Height "+h+"/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length "+jpg.length+">>\nstream\n"));push(jpg);push(enc("\nendstream\nendobj\n"));
+ const content=enc("q "+w+" 0 0 "+h+" 0 0 cm /Im0 Do Q");
+ obj(5);push(enc("5 0 obj\n<</Length "+content.length+">>\nstream\n"));push(content);push(enc("\nendstream\nendobj\n"));
+ const xo=len;let xr="xref\n0 6\n0000000000 65535 f \n";for(let i=1;i<=5;i++)xr+=String(offs[i]).padStart(10,"0")+" 00000 n \n";push(enc(xr));
+ push(enc("trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n"+xo+"\n%%EOF"));
+ const tot=new Uint8Array(len);let o=0;for(const p of parts){tot.set(p,o);o+=p.length;}return new Blob([tot],{type:"application/pdf"});}
+function downloadPDF(){renderRaster("image/jpeg",0.92,(b,w,h)=>b.arrayBuffer().then(ab=>dl(buildPDF(new Uint8Array(ab),w,h),fname("pdf"))));}
 function saveProject(){const data={_app:"nGSolutions-Croqui",_ver:5,site:$("g-site").value,date:$("g-date").value,mode,ac:{fields:{},pos:acPos},planta:{items:BD.planta.items,idc:BD.planta.idc},rf:{items:BD.rf.items,idc:BD.rf.idc}};acFields.forEach(k=>data.ac.fields[k]=$(k).value);dl(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),"Projeto_"+(gSite()||"site").replace(/\s+/g,"_")+".json");}
 function loadProject(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);
  if(d.site!==undefined)$("g-site").value=d.site;if(d.date!==undefined)$("g-date").value=d.date;
