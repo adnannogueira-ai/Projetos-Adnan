@@ -108,6 +108,7 @@
       <button onclick="bAdd('planta','vaga')">&#43; Vaga livre</button>
       <button onclick="bAdd('planta','container')">&#43; Container</button>
       <button onclick="bAdd('planta','abrigo')">&#43; Abrigo alv.</button>
+      <button onclick="bAdd('planta','rooftop')">&#43; Topo edif.</button>
       <button onclick="bAdd('planta','esteira')">&#43; Esteiramento</button>
       <button onclick="bAdd('planta','tubo')">&#43; Tubula&#231;&#227;o AC</button>
       <button onclick="bAdd('planta','portao')">&#43; Port&#227;o</button>
@@ -154,7 +155,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const P="#42738d",A="#f19f53",G="#5a5a5a",LG="#e8edf1";
 const PXM=50;
-function ISMETRIC(t){return ["torre","gab","base","vaga","container","abrigo","esteira","portao","qtm","quadro","tubo"].includes(t);}
+function ISMETRIC(t){return ["torre","gab","base","vaga","container","abrigo","esteira","portao","qtm","quadro","tubo","rooftop"].includes(t);}
 let mode="ac";
 function gSite(){return ($("g-site").value||"").toUpperCase();}
 function gDate(){const v=$("g-date").value;if(!v)return "";const p=v.split("-");return p[2]+"/"+p[1]+"/"+p[0];}
@@ -199,7 +200,8 @@ const DEFS={
   tubo:{w:150,h:14,label:"Tubulação AC",metros:"10"},
   portao:{w:90,h:16,label:"Portão"},
   qtm:{w:54,h:40,label:"QTM"},
-  quadro:{w:64,h:34,label:"QE (muro)"}
+  quadro:{w:64,h:34,label:"QE (muro)"},
+  rooftop:{w:190,h:130,label:"Topo do edifício"}
  },
  rf:{
   antena:{w:160,h:30,label:"ODI2-065R16MJJ02-GQ",ports:"R1 Y1 Y2 RET Y4 Y3 R2",color:"#d9d9d9"},
@@ -229,7 +231,7 @@ function plLabel(it){const hw=it.w/2,hh=it.h/2;let out="";
  if(it.type==="tubo"){if(!it.hide)out+=plTxt((it.w/PXM).toFixed(1)+" m","",it.lpos||"abaixo",hw,hh,it,11);return out;}
  if(!it.hide){let name=it.label,sub="";
   if(it.type==="gab"){name=(it.brand||it.label)+(it.num?" "+it.num:"");sub="gabinete";}else if(it.type==="vaga")sub="novo gab.";
-  const lp=it.lpos||(["container","abrigo","qtm","quadro","vaga","gab"].includes(it.type)?"centro":"abaixo");
+  const lp=it.lpos||(["container","abrigo","qtm","quadro","vaga","gab","rooftop"].includes(it.type)?"centro":"abaixo");
   out+=plTxt(name,sub,lp,hw,hh,it,10.5);}
  if(it.showm&&ISMETRIC(it.type)&&it.type!=="esteira"&&it.type!=="tubo"){out+=plTxt((it.w/PXM).toFixed(1)+"×"+(it.h/PXM).toFixed(1)+" m","",it.mpos||"abaixo",hw,hh,it,9);}
  return out;}
@@ -244,7 +246,7 @@ function plShape(it){const w=it.w,h=it.h,hw=w/2,hh=h/2,t=it.type;let g="";
  else if(t==="esteira"){let r="";for(let x=-hw+8;x<hw;x+=12)r+=`<line x1="${x}" y1="${-hh}" x2="${x}" y2="${hh}" stroke="${A}" stroke-width="1.2"/>`;g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${A}" stroke-width="1.8"/>${r}`;}
  else if(t==="tubo")g=`<line x1="${-hw}" y1="0" x2="${hw}" y2="0" stroke="${P}" stroke-width="5"/><line x1="${-hw}" y1="0" x2="${hw}" y2="0" stroke="#fff" stroke-width="1.6" stroke-dasharray="6 6"/>`;
  else if(t==="portao")g=`<g transform="scale(${it.flip?-1:1},1)"><line x1="${-hw}" y1="0" x2="${hw}" y2="0" stroke="${A}" stroke-width="3"/><path d="M ${-hw} 0 A ${w} ${w} 0 0 1 ${-hw+w*0.7} ${-w*0.7}" fill="none" stroke="${A}" stroke-width="1" stroke-dasharray="3 3"/></g>`;
- else if(t==="qtm")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#fff" stroke="${P}" stroke-width="2" rx="4"/>`;
+ else if(t==="rooftop"){const hs=Math.max(12,Math.min(24,Math.min(w,h)*0.2));g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#f7f9fb" stroke="${P}" stroke-width="2"/><rect x="${-hw+6}" y="${-hh+6}" width="${w-12}" height="${h-12}" fill="none" stroke="${P}" stroke-width="1" stroke-dasharray="2 3"/><rect x="${-hw+11}" y="${-hh+11}" width="${hs}" height="${hs}" fill="#fff" stroke="${P}" stroke-width="1.2"/><line x1="${-hw+11}" y1="${-hh+11}" x2="${-hw+11+hs}" y2="${-hh+11+hs}" stroke="${P}" stroke-width="1"/><text x="${-hw+11+hs/2}" y="${-hh+11+hs+9}" text-anchor="middle" font-size="7" fill="${G}">alçapão</text>`;}else if(t==="qtm")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#fff" stroke="${P}" stroke-width="2" rx="4"/>`;
  else if(t==="quadro")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#fff" stroke="${A}" stroke-width="2" rx="3"/>`;
  return g+plLabel(it);}
 function rfShape(it){const w=it.w,h=it.h,hw=w/2,hh=h/2,t=it.type,L=!it.hide;
@@ -306,7 +308,7 @@ function bEditor(bk){const ed=$(bk+"-editor"),it=BD[bk].items.find(x=>x.id===BD[
  if(it.type==="antena")x=`<label>Portas (separadas por espa&#231;o)</label><input value="${esc(it.ports||"")}" oninput="bSet('ports',this.value)">`;
  if(it.type==="baseband")x=`<label>Portas (ex.: A B C D E F)</label><input value="${esc(it.ports||"")}" oninput="bSet('ports',this.value)">`;
  let colr="";if(["rru","air","rp","antena","cabo","fibra"].includes(it.type))colr=`<label>Cor</label><div class="swatches">${COLORS.map(c=>`<div class="sw" style="background:${c}" onclick="bSet('color','${c}')"></div>`).join("")}</div>`;
- const dlp=it.lpos||(["container","abrigo","qtm","quadro","vaga","gab"].includes(it.type)?"centro":"abaixo");
+ const dlp=it.lpos||(["container","abrigo","qtm","quadro","vaga","gab","rooftop"].includes(it.type)?"centro":"abaixo");
  const desc = bk==="planta"
   ? `<label>Nome (posi&#231;&#227;o)</label><select onchange="bSetLpos(this.value)">${[["abaixo","Abaixo"],["acima","Acima"],["esquerda","Esquerda"],["direita","Direita"],["centro","Centro"],["oculto","Ocultar"]].map(o=>`<option value="${o[0]}" ${((it.hide&&o[0]==="oculto")||(!it.hide&&dlp===o[0]))?"selected":""}>${o[1]}</option>`).join("")}</select>`
   : `<div class="chk"><input type="checkbox" id="chk-hide" ${it.hide?"checked":""} onchange="bHide(this.checked)"><label for="chk-hide" style="margin:0">Ocultar descri&#231;&#227;o</label></div>`;
