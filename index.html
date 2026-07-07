@@ -109,6 +109,8 @@
       <button onclick="bAdd('planta','container')">&#43; Container</button>
       <button onclick="bAdd('planta','abrigo')">&#43; Abrigo alv.</button>
       <button onclick="bAdd('planta','rooftop')">&#43; Topo edif.</button>
+      <button onclick="bAdd('planta','alcapao')">&#43; Al&#231;ap&#227;o</button>
+      <button onclick="bAdd('planta','escada')">&#43; Escada mar.</button>
       <button onclick="bAdd('planta','esteira')">&#43; Esteiramento</button>
       <button onclick="bAdd('planta','tubo')">&#43; Tubula&#231;&#227;o AC</button>
       <button onclick="bAdd('planta','portao')">&#43; Port&#227;o</button>
@@ -155,7 +157,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const P="#42738d",A="#f19f53",G="#5a5a5a",LG="#e8edf1";
 const PXM=50;
-function ISMETRIC(t){return ["torre","gab","base","vaga","container","abrigo","esteira","portao","qtm","quadro","tubo","rooftop"].includes(t);}
+function ISMETRIC(t){return ["torre","gab","base","vaga","container","abrigo","esteira","portao","qtm","quadro","tubo","rooftop","alcapao","escada"].includes(t);}
 let mode="ac";
 function gSite(){return ($("g-site").value||"").toUpperCase();}
 function gDate(){const v=$("g-date").value;if(!v)return "";const p=v.split("-");return p[2]+"/"+p[1]+"/"+p[0];}
@@ -201,7 +203,9 @@ const DEFS={
   portao:{w:90,h:16,label:"Portão"},
   qtm:{w:54,h:40,label:"QTM"},
   quadro:{w:64,h:34,label:"QE (muro)"},
-  rooftop:{w:190,h:130,label:"Topo do edifício"}
+  rooftop:{w:190,h:130,label:"Topo do edifício"},
+  alcapao:{w:30,h:30,label:"Alçapão"},
+  escada:{w:34,h:48,label:"Escada marinheiro"}
  },
  rf:{
   antena:{w:160,h:30,label:"ODI2-065R16MJJ02-GQ",ports:"R1 Y1 Y2 RET Y4 Y3 R2",color:"#d9d9d9"},
@@ -247,7 +251,7 @@ function plShape(it){const w=it.w,h=it.h,hw=w/2,hh=h/2,t=it.type;let g="";
  else if(t==="esteira"){let r="";for(let x=-hw+8;x<hw;x+=12)r+=`<line x1="${x}" y1="${-hh}" x2="${x}" y2="${hh}" stroke="${A}" stroke-width="1.2"/>`;g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${A}" stroke-width="1.8"/>${r}`;}
  else if(t==="tubo")g=`<line x1="${-hw}" y1="0" x2="${hw}" y2="0" stroke="${P}" stroke-width="5"/><line x1="${-hw}" y1="0" x2="${hw}" y2="0" stroke="#fff" stroke-width="1.6" stroke-dasharray="6 6"/>`;
  else if(t==="portao")g=`<g transform="scale(${it.flip?-1:1},1)"><line x1="${-hw}" y1="0" x2="${hw}" y2="0" stroke="${A}" stroke-width="3"/><path d="M ${-hw} 0 A ${w} ${w} 0 0 1 ${-hw+w*0.7} ${-w*0.7}" fill="none" stroke="${A}" stroke-width="1" stroke-dasharray="3 3"/></g>`;
- else if(t==="rooftop"){const hs=Math.max(12,Math.min(24,Math.min(w,h)*0.2));g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#f7f9fb" stroke="${P}" stroke-width="2"/><rect x="${-hw+6}" y="${-hh+6}" width="${w-12}" height="${h-12}" fill="none" stroke="${P}" stroke-width="1" stroke-dasharray="2 3"/>`;const hp=it.hatch||"SE";if(hp!=="N"){const c=cornerXY(hp,w,h,hs,hs,11);g+=`<rect x="${c[0]}" y="${c[1]}" width="${hs}" height="${hs}" fill="#fff" stroke="${P}" stroke-width="1.2"/><line x1="${c[0]}" y1="${c[1]}" x2="${c[0]+hs}" y2="${c[1]+hs}" stroke="${P}" stroke-width="1"/>`;}const lp2=it.ladder||"N";if(lp2!=="N"){const lw=14,lh=28,c=cornerXY(lp2,w,h,lw,lh,11);let rg="";for(let yy=c[1]+5;yy<c[1]+lh;yy+=6)rg+=`<line x1="${c[0]}" y1="${yy}" x2="${c[0]+lw}" y2="${yy}" stroke="${P}" stroke-width="1"/>`;g+=`<rect x="${c[0]}" y="${c[1]}" width="${lw}" height="${lh}" fill="#fff" stroke="${P}" stroke-width="1.2"/>${rg}`;}}else if(t==="qtm")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#fff" stroke="${P}" stroke-width="2" rx="4"/>`;
+ else if(t==="rooftop")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#f7f9fb" stroke="${P}" stroke-width="2"/><rect x="${-hw+6}" y="${-hh+6}" width="${w-12}" height="${h-12}" fill="none" stroke="${P}" stroke-width="1" stroke-dasharray="2 3"/>`;else if(t==="alcapao")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#fff" stroke="${P}" stroke-width="1.6"/><line x1="${-hw}" y1="${-hh}" x2="${hw}" y2="${hh}" stroke="${P}" stroke-width="1"/><line x1="${-hw}" y1="${hh}" x2="${hw}" y2="${-hh}" stroke="${P}" stroke-width="1"/>`;else if(t==="escada"){const ph=h*0.52,lw=w*0.5;let s=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${ph}" fill="#fff" stroke="${P}" stroke-width="1.5"/>`;[[-hw+3,-hh+3],[hw-3,-hh+3],[-hw+3,-hh+ph-3],[hw-3,-hh+ph-3]].forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="2.4" fill="${P}"/>`);s+=`<rect x="${-lw/2}" y="${-hh+ph}" width="${lw}" height="${h-ph}" fill="none" stroke="${P}" stroke-width="1.5"/>`;for(let yy=-hh+ph+5;yy<hh;yy+=6)s+=`<line x1="${-lw/2}" y1="${yy}" x2="${lw/2}" y2="${yy}" stroke="${P}" stroke-width="1"/>`;g=s;}else if(t==="qtm")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#fff" stroke="${P}" stroke-width="2" rx="4"/>`;
  else if(t==="quadro")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="#fff" stroke="${A}" stroke-width="2" rx="3"/>`;
  return g+plLabel(it);}
 function rfShape(it){const w=it.w,h=it.h,hw=w/2,hh=h/2,t=it.type,L=!it.hide;
@@ -306,7 +310,7 @@ function bEditor(bk){const ed=$(bk+"-editor"),it=BD[bk].items.find(x=>x.id===BD[
  if(it.type==="torre")x=`<label>Tipo de estrutura vertical</label><select onchange="bSetSub(this.value)">${["Torre Autoportante","Torre Estaiada","Torre - Poste","Poste de Concreto","Mastro - Roof Top","Biosites"].map(o=>`<option ${it.sub===o?"selected":""}>${o}</option>`).join("")}</select>`;
  if(it.type==="gab"){const br=["Eltek","Delta","Clemar","Alfasite","Highline","Moura","Outro"];x=`<label>Marca</label><select onchange="bSetBrand(this.value)">${br.map(o=>`<option ${it.brand===o?"selected":""}>${o}</option>`).join("")}</select><label>N&#186; do gabinete</label><input value="${esc(it.num||"")}" oninput="bSet('num',this.value)" placeholder="1, 2, 3...">`;}
  
- if(it.type==="rooftop"){const op=(v)=>[["N","Nenhum"],["SE","Superior esq."],["SD","Superior dir."],["IE","Inferior esq."],["ID","Inferior dir."]].map(o=>`<option value="${o[0]}" ${v===o[0]?"selected":""}>${o[1]}</option>`).join("");x=`<label>Al&#231;ap&#227;o (posi&#231;&#227;o)</label><select onchange="bSet('hatch',this.value)">${op(it.hatch||"SE")}</select><label>Escada marinheiro (posi&#231;&#227;o)</label><select onchange="bSet('ladder',this.value)">${op(it.ladder||"N")}</select>`;}
+ 
  if(it.type==="antena")x=`<label>Portas (separadas por espa&#231;o)</label><input value="${esc(it.ports||"")}" oninput="bSet('ports',this.value)">`;
  if(it.type==="baseband")x=`<label>Portas (ex.: A B C D E F)</label><input value="${esc(it.ports||"")}" oninput="bSet('ports',this.value)">`;
  let colr="";if(["rru","air","rp","antena","cabo","fibra"].includes(it.type))colr=`<label>Cor</label><div class="swatches">${COLORS.map(c=>`<div class="sw" style="background:${c}" onclick="bSet('color','${c}')"></div>`).join("")}</div>`;
