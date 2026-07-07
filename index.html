@@ -216,18 +216,23 @@ function bAdd(bk,type){const b=BD[bk],d=DEFS[bk][type];const it=Object.assign({i
 function bClear(bk){const b=BD[bk];if(b.items.length&&!confirm("Remover todas as pe&#231;as?"))return;b.items=[];b.sel=null;bRender(bk);}
 function labT(show,x,y,txt,fs,col,fw){return show?`<text x="${x}" y="${y}" text-anchor="middle" font-size="${fs}" ${fw?'font-weight="700"':''} fill="${col||G}">${esc(txt)}</text>`:"";}
 
-function plLabel(it){if(it.hide)return "";const hw=it.w/2,hh=it.h/2;let main=it.label,sub="";
- if(it.type==="gab"){main=(it.brand||it.label)+(it.num?" "+it.num:"");sub="gabinete";}else if(it.type==="esteira")main=(it.w/PXM).toFixed(1)+" m";
- else if(it.type==="vaga")sub="novo gab.";else if(it.type==="tubo")main=(it.w/PXM).toFixed(1)+" m";
- if(it.showm&&ISMETRIC(it.type)&&it.type!=="esteira"&&it.type!=="tubo")sub=(it.w/PXM).toFixed(1)+"×"+(it.h/PXM).toFixed(1)+" m";
- const lp=it.lpos||(["container","abrigo","qtm","quadro","vaga","gab"].includes(it.type)?"centro":"abaixo");
- let x=0,y=0,anc="middle",y2=0;
- if(lp==="abaixo"){x=0;y=hh+13;y2=hh+25;}else if(lp==="acima"){x=0;y=-hh-6-(sub?12:0);y2=-hh-6;}
- else if(lp==="esquerda"){x=-hw-8;anc="end";y=sub?-2:3;y2=11;}else if(lp==="direita"){x=hw+8;anc="start";y=sub?-2:3;y2=11;}
+function plTxt(main,sub,pos,hw,hh,it,base){let x=0,y=0,anc="middle",y2=0;
+ if(pos==="abaixo"){x=0;y=hh+13;y2=hh+25;}else if(pos==="acima"){x=0;y=-hh-6-(sub?12:0);y2=-hh-6;}
+ else if(pos==="esquerda"){x=-hw-8;anc="end";y=sub?-2:3;y2=11;}else if(pos==="direita"){x=hw+8;anc="start";y=sub?-2:3;y2=11;}
  else {x=0;y=sub?-2:4;y2=11;}
- const fs=(lp==="centro")?Math.max(7,Math.min(12,(it.w-10)/(String(main).length*0.62))):((it.type==="esteira"||it.type==="tubo")?11:10.5);let s=`<text x="${x}" y="${y}" text-anchor="${anc}" font-size="${fs}" font-weight="700" fill="${P}">${esc(main)}</text>`;
+ let fs=base;if(pos==="centro")fs=Math.max(6,Math.min(base,(it.w-8)/(String(main).length*0.6),it.h*0.72));
+ let s=`<text x="${x}" y="${y}" text-anchor="${anc}" font-size="${fs}" font-weight="700" fill="${P}">${esc(main)}</text>`;
  if(sub)s+=`<text x="${x}" y="${y2}" text-anchor="${anc}" font-size="8.5" fill="${G}">${esc(sub)}</text>`;
  return s;}
+function plLabel(it){const hw=it.w/2,hh=it.h/2;let out="";
+ if(it.type==="esteira"){if(!it.hide)out+=plTxt((it.w/PXM).toFixed(1)+"×"+(it.h/PXM).toFixed(1)+" m","",it.lpos||"abaixo",hw,hh,it,11);return out;}
+ if(it.type==="tubo"){if(!it.hide)out+=plTxt((it.w/PXM).toFixed(1)+" m","",it.lpos||"abaixo",hw,hh,it,11);return out;}
+ if(!it.hide){let name=it.label,sub="";
+  if(it.type==="gab"){name=(it.brand||it.label)+(it.num?" "+it.num:"");sub="gabinete";}else if(it.type==="vaga")sub="novo gab.";
+  const lp=it.lpos||(["container","abrigo","qtm","quadro","vaga","gab"].includes(it.type)?"centro":"abaixo");
+  out+=plTxt(name,sub,lp,hw,hh,it,10.5);}
+ if(it.showm&&ISMETRIC(it.type)&&it.type!=="esteira"&&it.type!=="tubo"){out+=plTxt((it.w/PXM).toFixed(1)+"×"+(it.h/PXM).toFixed(1)+" m","",it.mpos||"abaixo",hw,hh,it,9);}
+ return out;}
 function plDoor(w,hh){const hw=w/2,dw=Math.min(26,w*0.4),x0=-hw+7;return `<line x1="${x0}" y1="${hh}" x2="${x0+dw}" y2="${hh}" stroke="#fff" stroke-width="3.5"/><line x1="${x0}" y1="${hh}" x2="${x0}" y2="${hh-dw}" stroke="${P}" stroke-width="1.5"/><path d="M ${x0} ${hh-dw} A ${dw} ${dw} 0 0 1 ${x0+dw} ${hh}" fill="none" stroke="${P}" stroke-width="1" stroke-dasharray="3 3"/>`;}
 function plShape(it){const w=it.w,h=it.h,hw=w/2,hh=h/2,t=it.type;let g="";
  if(t==="torre"){var s=it.sub;if(s==="Torre Estaiada")g=`<circle r="12" fill="none" stroke="${P}" stroke-width="2.5"/>`+[0,120,240].map(a=>{const r=(a-90)*Math.PI/180;return `<line x1="0" y1="0" x2="${hw*Math.cos(r)}" y2="${hh*Math.sin(r)}" stroke="${P}" stroke-width="1.5"/><circle cx="${hw*Math.cos(r)}" cy="${hh*Math.sin(r)}" r="3" fill="${P}"/>`;}).join("");else if(s==="Mastro - Roof Top")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${P}" stroke-width="2.5"/><circle r="${Math.max(3,Math.min(hw,hh)*0.35)}" fill="${P}"/>`;else if(s==="Poste de Concreto")g=`<circle r="11" fill="none" stroke="${P}" stroke-width="2.5"/><circle r="4.5" fill="${P}"/>`;else if(s==="Torre - Poste")g=`<circle r="10" fill="${P}"/>`;else if(s==="Biosites")g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" rx="10" fill="${LG}" stroke="${P}" stroke-width="2.5"/><circle r="${Math.max(4,Math.min(hw,hh)*0.3)}" fill="${P}"/>`;else g=`<rect x="${-hw}" y="${-hh}" width="${w}" height="${h}" fill="none" stroke="${P}" stroke-width="2.5"/><line x1="${-hw}" y1="${-hh}" x2="${hw}" y2="${hh}" stroke="${P}" stroke-width="1.5"/><line x1="${hw}" y1="${-hh}" x2="${-hw}" y2="${hh}" stroke="${P}" stroke-width="1.5"/>`;}
@@ -303,22 +308,24 @@ function bEditor(bk){const ed=$(bk+"-editor"),it=BD[bk].items.find(x=>x.id===BD[
  let colr="";if(["rru","air","rp","antena","cabo","fibra"].includes(it.type))colr=`<label>Cor</label><div class="swatches">${COLORS.map(c=>`<div class="sw" style="background:${c}" onclick="bSet('color','${c}')"></div>`).join("")}</div>`;
  const dlp=it.lpos||(["container","abrigo","qtm","quadro","vaga","gab"].includes(it.type)?"centro":"abaixo");
  const desc = bk==="planta"
-  ? `<label>Descri&#231;&#227;o</label><select onchange="bSetLpos(this.value)">${[["abaixo","Abaixo"],["acima","Acima"],["esquerda","Esquerda"],["direita","Direita"],["centro","Centro"],["oculto","Ocultar"]].map(o=>`<option value="${o[0]}" ${((it.hide&&o[0]==="oculto")||(!it.hide&&dlp===o[0]))?"selected":""}>${o[1]}</option>`).join("")}</select>`
+  ? `<label>Nome (posi&#231;&#227;o)</label><select onchange="bSetLpos(this.value)">${[["abaixo","Abaixo"],["acima","Acima"],["esquerda","Esquerda"],["direita","Direita"],["centro","Centro"],["oculto","Ocultar"]].map(o=>`<option value="${o[0]}" ${((it.hide&&o[0]==="oculto")||(!it.hide&&dlp===o[0]))?"selected":""}>${o[1]}</option>`).join("")}</select>`
   : `<div class="chk"><input type="checkbox" id="chk-hide" ${it.hide?"checked":""} onchange="bHide(this.checked)"><label for="chk-hide" style="margin:0">Ocultar descri&#231;&#227;o</label></div>`;
  const flip = it.type==="portao"?`<div class="chk"><input type="checkbox" id="chk-flip" ${it.flip?"checked":""} onchange="bSet('flip',this.checked)"><label for="chk-flip" style="margin:0">Inverter port&#227;o</label></div>`:"";
  const metric=ISMETRIC(it.type);
- const medm=(metric&&it.type!=="esteira"&&it.type!=="tubo")?`<div class="chk"><input type="checkbox" id="chk-medm" ${it.showm?"checked":""} onchange="bSet('showm',this.checked)"><label for="chk-medm" style="margin:0">Mostrar medida (m)</label></div>`:"";
+ const medm=(metric&&it.type!=="esteira"&&it.type!=="tubo")?`<div class="chk"><input type="checkbox" id="chk-medm" ${it.showm?"checked":""} onchange="bShowM(this.checked)"><label for="chk-medm" style="margin:0">Mostrar medida (m)</label></div>`:"";
+ const medpos=(it.showm&&metric&&it.type!=="esteira"&&it.type!=="tubo")?`<label>Posi&#231;&#227;o da medida</label><select onchange="bSet('mpos',this.value)">${["abaixo","acima","esquerda","direita","centro"].map(o=>`<option ${(it.mpos||"abaixo")===o?"selected":""}>${o}</option>`).join("")}</select>`:"";
  const dim=metric
   ? (it.type==="tubo"?`<div class="row" style="margin-top:8px"><div><label>Comprimento (m)</label><input inputmode="decimal" value="${(it.w/PXM).toFixed(2)}" oninput="bSetM('w',this.value)"></div></div><div class="muted">Escala 1:100 &#183; di&#226;metro ilustrativo (fixo)</div>`:`<div class="row" style="margin-top:8px"><div><label>Comprimento (m)</label><input inputmode="decimal" value="${(it.w/PXM).toFixed(2)}" oninput="bSetM('w',this.value)"></div><div><label>Largura (m)</label><input inputmode="decimal" value="${(it.h/PXM).toFixed(2)}" oninput="bSetM('h',this.value)"></div></div><div class="muted">Escala 1:100 &#183; medidas reais em metros</div>`)
   : `<div class="row" style="margin-top:8px"><div><label>Comprimento</label><input inputmode="decimal" value="${it.w}" oninput="bSetNum('w',this.value)"></div><div><label>Largura</label><input inputmode="decimal" value="${it.h}" oninput="bSetNum('h',this.value)"></div></div>`;
  ed.innerHTML=`<b style="color:${P}">Pe&#231;a selecionada</b>
   ${it.type==="rosa"?"":`<label>${it.type==="rru"||it.type==="air"?"Texto (use / p/ quebrar linha)":"R&#243;tulo"}</label><input value="${esc(it.label)}" oninput="bSet('label',this.value)">`}
-  ${x}${colr}${desc}${flip}${medm}
+  ${x}${colr}${desc}${flip}${medm}${medpos}
   ${dim}
   <div class="muted">Dica: arraste a al&#231;a verde no canto p/ redimensionar, ou use dois dedos (pin&#231;a). Toque fora da pe&#231;a p/ desmarcar.</div>
   <div class="btns" style="margin-top:8px"><button class="b-ghost" onclick="bRotate(-15)">&#8630;15&#176;</button><button class="b-ghost" onclick="bRotate(15)">15&#176;&#8631;</button><button class="b-ghost" onclick="bRotate(90)">90&#176;</button><button class="b-ghost" onclick="bDup()">Duplicar</button><button class="b-red" onclick="bDel()">Excluir</button></div>`;
 }
 function bSetM(k,v){const it=bSel();if(!it)return;const n=parseFloat(v);if(v===""||isNaN(n))return;it[k]=Math.max(6,n*PXM);bDrawSvg(mode);}
+function bShowM(c){const it=bSel();if(it){it.showm=c;bRender(mode);}}
 function bSetLpos(v){const it=bSel();if(!it)return;if(v==="oculto"){it.hide=true;}else{it.hide=false;it.lpos=v;}bDrawSvg(mode);}
 function bSetSub(v){const it=bSel();if(it){it.sub=v;it.label=v;bRender(mode);}}
 /* ===== EXPORT / SAVE ===== */
