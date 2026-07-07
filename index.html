@@ -154,7 +154,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const P="#42738d",A="#f19f53",G="#5a5a5a",LG="#e8edf1";
 const PXM=50;
-function ISMETRIC(t){return ["torre","gab","base","vaga","container","abrigo","esteira","portao","qtm","quadro"].includes(t);}
+function ISMETRIC(t){return ["torre","gab","base","vaga","container","abrigo","esteira","portao","qtm","quadro","tubo"].includes(t);}
 let mode="ac";
 function gSite(){return ($("g-site").value||"").toUpperCase();}
 function gDate(){const v=$("g-date").value;if(!v)return "";const p=v.split("-");return p[2]+"/"+p[1]+"/"+p[0];}
@@ -218,8 +218,8 @@ function labT(show,x,y,txt,fs,col,fw){return show?`<text x="${x}" y="${y}" text-
 
 function plLabel(it){if(it.hide)return "";const hw=it.w/2,hh=it.h/2;let main=it.label,sub="";
  if(it.type==="gab"){main=(it.brand||it.label)+(it.num?" "+it.num:"");sub="gabinete";}else if(it.type==="esteira")main=(it.w/PXM).toFixed(1)+" m";
- else if(it.type==="vaga")sub="novo gab.";else if(it.type==="tubo")main=esc(it.metros)+" m";
- if(it.showm&&ISMETRIC(it.type)&&it.type!=="esteira")sub=(it.w/PXM).toFixed(1)+"×"+(it.h/PXM).toFixed(1)+" m";
+ else if(it.type==="vaga")sub="novo gab.";else if(it.type==="tubo")main=(it.w/PXM).toFixed(1)+" m";
+ if(it.showm&&ISMETRIC(it.type)&&it.type!=="esteira"&&it.type!=="tubo")sub=(it.w/PXM).toFixed(1)+"×"+(it.h/PXM).toFixed(1)+" m";
  const lp=it.lpos||(["container","abrigo","qtm","quadro","vaga","gab"].includes(it.type)?"centro":"abaixo");
  let x=0,y=0,anc="middle",y2=0;
  if(lp==="abaixo"){x=0;y=hh+13;y2=hh+25;}else if(lp==="acima"){x=0;y=-hh-6-(sub?12:0);y2=-hh-6;}
@@ -297,7 +297,7 @@ function bEditor(bk){const ed=$(bk+"-editor"),it=BD[bk].items.find(x=>x.id===BD[
  ed.classList.remove("hidden");let x="";
  if(it.type==="torre")x=`<label>Tipo de estrutura vertical</label><select onchange="bSetSub(this.value)">${["Torre Autoportante","Torre Estaiada","Torre - Poste","Poste de Concreto","Mastro - Roof Top","Biosites"].map(o=>`<option ${it.sub===o?"selected":""}>${o}</option>`).join("")}</select>`;
  if(it.type==="gab"){const br=["Eltek","Delta","Clemar","Alfasite","Highline","Moura","Outro"];x=`<label>Marca</label><select onchange="bSetBrand(this.value)">${br.map(o=>`<option ${it.brand===o?"selected":""}>${o}</option>`).join("")}</select><label>N&#186; do gabinete</label><input value="${esc(it.num||"")}" oninput="bSet('num',this.value)" placeholder="1, 2, 3...">`;}
- if(it.type==="tubo")x=`<label>Metragem (m)</label><input inputmode="decimal" value="${esc(it.metros)}" oninput="bSet('metros',this.value)">`;
+ 
  if(it.type==="antena")x=`<label>Portas (separadas por espa&#231;o)</label><input value="${esc(it.ports||"")}" oninput="bSet('ports',this.value)">`;
  if(it.type==="baseband")x=`<label>Portas (ex.: A B C D E F)</label><input value="${esc(it.ports||"")}" oninput="bSet('ports',this.value)">`;
  let colr="";if(["rru","air","rp","antena","cabo","fibra"].includes(it.type))colr=`<label>Cor</label><div class="swatches">${COLORS.map(c=>`<div class="sw" style="background:${c}" onclick="bSet('color','${c}')"></div>`).join("")}</div>`;
@@ -309,7 +309,7 @@ function bEditor(bk){const ed=$(bk+"-editor"),it=BD[bk].items.find(x=>x.id===BD[
  const metric=ISMETRIC(it.type);
  const medm=(metric&&it.type!=="esteira"&&it.type!=="tubo")?`<div class="chk"><input type="checkbox" id="chk-medm" ${it.showm?"checked":""} onchange="bSet('showm',this.checked)"><label for="chk-medm" style="margin:0">Mostrar medida (m)</label></div>`:"";
  const dim=metric
-  ? `<div class="row" style="margin-top:8px"><div><label>Comprimento (m)</label><input inputmode="decimal" value="${(it.w/PXM).toFixed(2)}" oninput="bSetM('w',this.value)"></div><div><label>Largura (m)</label><input inputmode="decimal" value="${(it.h/PXM).toFixed(2)}" oninput="bSetM('h',this.value)"></div></div><div class="muted">Escala 1:100 &#183; medidas reais em metros</div>`
+  ? (it.type==="tubo"?`<div class="row" style="margin-top:8px"><div><label>Comprimento (m)</label><input inputmode="decimal" value="${(it.w/PXM).toFixed(2)}" oninput="bSetM('w',this.value)"></div></div><div class="muted">Escala 1:100 &#183; di&#226;metro ilustrativo (fixo)</div>`:`<div class="row" style="margin-top:8px"><div><label>Comprimento (m)</label><input inputmode="decimal" value="${(it.w/PXM).toFixed(2)}" oninput="bSetM('w',this.value)"></div><div><label>Largura (m)</label><input inputmode="decimal" value="${(it.h/PXM).toFixed(2)}" oninput="bSetM('h',this.value)"></div></div><div class="muted">Escala 1:100 &#183; medidas reais em metros</div>`)
   : `<div class="row" style="margin-top:8px"><div><label>Comprimento</label><input inputmode="decimal" value="${it.w}" oninput="bSetNum('w',this.value)"></div><div><label>Largura</label><input inputmode="decimal" value="${it.h}" oninput="bSetNum('h',this.value)"></div></div>`;
  ed.innerHTML=`<b style="color:${P}">Pe&#231;a selecionada</b>
   ${it.type==="rosa"?"":`<label>${it.type==="rru"||it.type==="air"?"Texto (use / p/ quebrar linha)":"R&#243;tulo"}</label><input value="${esc(it.label)}" oninput="bSet('label',this.value)">`}
