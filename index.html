@@ -154,7 +154,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const P="#42738d",A="#f19f53",G="#5a5a5a",LG="#e8edf1";
 const PXM=50;
-function ISMETRIC(t){return t==="torre"||t==="gab"||t==="esteira"||t==="base";}
+function ISMETRIC(t){return ["torre","gab","base","vaga","container","abrigo","esteira","portao","qtm","quadro"].includes(t);}
 let mode="ac";
 function gSite(){return ($("g-site").value||"").toUpperCase();}
 function gDate(){const v=$("g-date").value;if(!v)return "";const p=v.split("-");return p[2]+"/"+p[1]+"/"+p[0];}
@@ -219,6 +219,7 @@ function labT(show,x,y,txt,fs,col,fw){return show?`<text x="${x}" y="${y}" text-
 function plLabel(it){if(it.hide)return "";const hw=it.w/2,hh=it.h/2;let main=it.label,sub="";
  if(it.type==="gab"){main=(it.brand||it.label)+(it.num?" "+it.num:"");sub="gabinete";}else if(it.type==="esteira")main=(it.w/PXM).toFixed(1)+" m";
  else if(it.type==="vaga")sub="novo gab.";else if(it.type==="tubo")main=esc(it.metros)+" m";
+ if(it.showm&&ISMETRIC(it.type)&&it.type!=="esteira")sub=(it.w/PXM).toFixed(1)+"×"+(it.h/PXM).toFixed(1)+" m";
  const lp=it.lpos||(["container","abrigo","qtm","quadro","vaga","gab"].includes(it.type)?"centro":"abaixo");
  let x=0,y=0,anc="middle",y2=0;
  if(lp==="abaixo"){x=0;y=hh+13;y2=hh+25;}else if(lp==="acima"){x=0;y=-hh-6-(sub?12:0);y2=-hh-6;}
@@ -306,12 +307,13 @@ function bEditor(bk){const ed=$(bk+"-editor"),it=BD[bk].items.find(x=>x.id===BD[
   : `<div class="chk"><input type="checkbox" id="chk-hide" ${it.hide?"checked":""} onchange="bHide(this.checked)"><label for="chk-hide" style="margin:0">Ocultar descri&#231;&#227;o</label></div>`;
  const flip = it.type==="portao"?`<div class="chk"><input type="checkbox" id="chk-flip" ${it.flip?"checked":""} onchange="bSet('flip',this.checked)"><label for="chk-flip" style="margin:0">Inverter port&#227;o</label></div>`:"";
  const metric=ISMETRIC(it.type);
+ const medm=(metric&&it.type!=="esteira"&&it.type!=="tubo")?`<div class="chk"><input type="checkbox" id="chk-medm" ${it.showm?"checked":""} onchange="bSet('showm',this.checked)"><label for="chk-medm" style="margin:0">Mostrar medida (m)</label></div>`:"";
  const dim=metric
   ? `<div class="row" style="margin-top:8px"><div><label>Comprimento (m)</label><input inputmode="decimal" value="${(it.w/PXM).toFixed(2)}" oninput="bSetM('w',this.value)"></div><div><label>Largura (m)</label><input inputmode="decimal" value="${(it.h/PXM).toFixed(2)}" oninput="bSetM('h',this.value)"></div></div><div class="muted">Escala 1:100 &#183; medidas reais em metros</div>`
   : `<div class="row" style="margin-top:8px"><div><label>Comprimento</label><input inputmode="decimal" value="${it.w}" oninput="bSetNum('w',this.value)"></div><div><label>Largura</label><input inputmode="decimal" value="${it.h}" oninput="bSetNum('h',this.value)"></div></div>`;
  ed.innerHTML=`<b style="color:${P}">Pe&#231;a selecionada</b>
   ${it.type==="rosa"?"":`<label>${it.type==="rru"||it.type==="air"?"Texto (use / p/ quebrar linha)":"R&#243;tulo"}</label><input value="${esc(it.label)}" oninput="bSet('label',this.value)">`}
-  ${x}${colr}${desc}${flip}
+  ${x}${colr}${desc}${flip}${medm}
   ${dim}
   <div class="muted">Dica: arraste a al&#231;a verde no canto p/ redimensionar, ou use dois dedos (pin&#231;a). Toque fora da pe&#231;a p/ desmarcar.</div>
   <div class="btns" style="margin-top:8px"><button class="b-ghost" onclick="bRotate(-15)">&#8630;15&#176;</button><button class="b-ghost" onclick="bRotate(15)">15&#176;&#8631;</button><button class="b-ghost" onclick="bRotate(90)">90&#176;</button><button class="b-ghost" onclick="bDup()">Duplicar</button><button class="b-red" onclick="bDel()">Excluir</button></div>`;
